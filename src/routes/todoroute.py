@@ -1,20 +1,25 @@
-from fastapi import APIRouter
-from ..schemas.todoschema import todoListSerializer, todoSerializer
+from fastapi import APIRouter, Request
+from ..schemas.todoschema import todoListSerializer
 from ..config.database import TodoCollection
 from ..models.todomodel import Todo, UpdateTodo
 from bson import ObjectId
+from fastapi.templating import Jinja2Templates
 
 todoRouter = APIRouter()
 
+templates = Jinja2Templates(directory="./src/templates")
+
 @todoRouter.get('/')
-def getTodos():
+def getTodos(request: Request):
     todos = todoListSerializer(TodoCollection.find())
-    return {"todos":todos , "message":"Todos Fetched Successfully"}
+
+    return templates.TemplateResponse(
+        request=request, name="index.html", context={"todos":todos , "message":"Working Fine"}
+    )
 
 @todoRouter.post('/')
 async def createTodo(todo : Todo):
-    existTodo = TodoCollection.insert_one(dict(todo))
-    print(f"EXISTTODO : {existTodo}")
+    TodoCollection.insert_one(dict(todo))
     return {"message": "Todo Created Successfully"}
 
 @todoRouter.delete('/{id}')

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Todo App</title>
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+        <script>
+            const handleSubmit = async (e) => {
+                const title = titleInput.value.trim();
+                const description = descInput.value.trim();
+                const completed = completedInput.checked;
+
+                if (!title || !description) return;
+
+                const todo = { title, description, completed };
+
+                // Send POST request to FastAPI backend
+                try {
+                    const res = await fetch("http://localhost:8000/", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: {
+                            ...todo,
+                        },
+                    });
+
+                    if (!res.ok) {
+                        throw new Error(`Server error: ${res.status}`);
+                    }
+
+                    const responseData = await res.json();
+
+                    // Optional: update UI with server-assigned ID
+
+                    // Clear inputs
+                    titleInput.value = "";
+                    descInput.value = "";
+                    completedInput.checked = false;
+                } catch (err) {
+                    console.error("Failed to send todo:", err);
+                    alert("Failed to add todo. See console for details.");
+                }
+            };
+        </script>
+    </head>
+    <body class="bg-gray-50 text-gray-800">
+        <!-- Navbar -->
+        <nav class="px-8 py-4 bg-white shadow mb-6">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-2xl font-bold">Todo App</h1>
+                <div></div>
+                <!-- Right side empty -->
+            </div>
+        </nav>
+
+        <main class="px-8">
+            <!-- One-line Form -->
+            <form
+                onsubmit="handleSubmit"
+                id="todoForm"
+                class="bg-white p-4 rounded-lg shadow mb-8 flex flex-col md:flex-row gap-4 items-center max-w-5xl mx-auto"
+            >
+                <input
+                    name="title"
+                    type="text"
+                    placeholder="Title"
+                    class="flex-1 px-4 py-2 border rounded focus:outline-none"
+                />
+                <input
+                    name="description"
+                    type="text"
+                    placeholder="Description"
+                    class="flex-1 px-4 py-2 border rounded focus:outline-none"
+                />
+
+                <label class="flex items-center space-x-2">
+                    <input
+                        name="completed"
+                        type="checkbox"
+                        class="form-checkbox h-5 w-5 text-blue-600"
+                    />
+                    <span>Completed</span>
+                </label>
+
+                <button
+                    type="submit"
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 whitespace-nowrap"
+                >
+                    Add
+                </button>
+            </form>
+
+            <!-- Todo List -->
+            <div class="max-w-5xl mx-auto space-y-4">
+                {% for i in range(1 , (todos | length) + 1) %}
+
+                <!-- Example Todo Item - Not Completed -->
+                <div
+                    class="bg-white p-4 rounded shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-4"
+                >
+                    <div class="flex-1">
+                        <p class="text-sm text-gray-500">#{{i}}</p>
+                        <p class="font-semibold">{{todos[i-1].title}}</p>
+                        <p class="text-gray-600 text-sm">
+                            {{todos[i-1].description}}
+                        </p>
+                    </div>
+                    <div class="text-gray-400 text-xl">
+                        <span
+                            class="inline-block w-6 h-6 border border-gray-400 rounded"
+                        ></span>
+                        <!-- Empty box -->
+                    </div>
+                    <div class="space-x-2">
+                        <button
+                            class="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500"
+                        >
+                            Edit
+                        </button>
+                        <button
+                            class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </main>
+    </body>
+</html>
