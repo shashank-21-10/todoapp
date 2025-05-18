@@ -1,11 +1,14 @@
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from .routes.todoroute import todoRouter
+from fastapi.responses import FileResponse
 
 app = FastAPI()
-app.mount("/static", StaticFiles(directory="./src/static"), name="static")
 
+favicon_path = './src/favicon.ico'
 
+@app.get('/favicon.ico', include_in_schema=False)
+async def favicon():
+    return FileResponse(favicon_path)
 
 app.include_router(todoRouter)
 

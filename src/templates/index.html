@@ -1,134 +1,328 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Todo App</title>
-        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-        <script>
-            const handleSubmit = async (e) => {
-                const title = titleInput.value.trim();
-                const description = descInput.value.trim();
-                const completed = completedInput.checked;
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <style>
+            * {
+                box-sizing: border-box;
+            }
 
-                if (!title || !description) return;
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background-color: #121212;
+                color: #e0e0e0;
+            }
 
-                const todo = { title, description, completed };
+            h1 {
+                text-align: center;
+                color: #ffffff;
+            }
 
-                // Send POST request to FastAPI backend
-                try {
-                    const res = await fetch("http://localhost:8000/", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: {
-                            ...todo,
-                        },
-                    });
+            p {
+                text-align: center;
+            }
 
-                    if (!res.ok) {
-                        throw new Error(`Server error: ${res.status}`);
-                    }
+            form {
+                background-color: #1e1e1e;
+                padding: 20px;
+                border-radius: 10px;
+                margin-bottom: 30px;
+                max-width: 500px;
+                margin-left: auto;
+                margin-right: auto;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+            }
 
-                    const responseData = await res.json();
+            label {
+                display: block;
+                margin-bottom: 15px;
+                color: #e0e0e0;
+            }
 
-                    // Optional: update UI with server-assigned ID
+            input[type="text"] {
+                width: 100%;
+                padding: 10px;
+                margin-top: 5px;
+                background-color: #2a2a2a;
+                color: #ffffff;
+                border: 1px solid #444;
+                border-radius: 5px;
+            }
 
-                    // Clear inputs
-                    titleInput.value = "";
-                    descInput.value = "";
-                    completedInput.checked = false;
-                } catch (err) {
-                    console.error("Failed to send todo:", err);
-                    alert("Failed to add todo. See console for details.");
+            button {
+                padding: 10px 20px;
+                background-color: #28a745;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+                background-color: #1e1e1e;
+            }
+
+            th,
+            td {
+                padding: 12px;
+                border: 1px solid #333;
+                text-align: left;
+            }
+
+            th {
+                background-color: #2a2a2a;
+            }
+
+            .action-btn {
+                padding: 6px 12px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+
+            .edit-btn {
+                background-color: #007bff;
+                color: white;
+            }
+
+            .delete-btn {
+                background-color: #dc3545;
+                color: white;
+            }
+
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 999;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+                background-color: rgba(0, 0, 0, 0.7);
+            }
+
+            .modal-content {
+                background-color: #1e1e1e;
+                margin: 10% auto;
+                padding: 20px;
+                border-radius: 8px;
+                width: 90%;
+                max-width: 400px;
+                box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+                color: #e0e0e0;
+            }
+
+            .close {
+                float: right;
+                font-size: 24px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+            .close:hover {
+                color: red;
+            }
+
+            @media (max-width: 600px) {
+                table,
+                thead,
+                tbody,
+                th,
+                td,
+                tr {
+                    display: block;
                 }
-            };
-        </script>
+
+                thead {
+                    display: none;
+                }
+
+                tr {
+                    margin-bottom: 15px;
+                    border: 1px solid #333;
+                    border-radius: 6px;
+                    padding: 10px;
+                    background-color: #1a1a1a;
+                }
+
+                td {
+                    padding: 10px;
+                    text-align: right;
+                    position: relative;
+                }
+
+                td::before {
+                    content: attr(data-label);
+                    position: absolute;
+                    left: 10px;
+                    top: 10px;
+                    font-weight: bold;
+                    text-align: left;
+                }
+            }
+        </style>
     </head>
-    <body class="bg-gray-50 text-gray-800">
-        <!-- Navbar -->
-        <nav class="px-8 py-4 bg-white shadow mb-6">
-            <div class="container mx-auto flex justify-between items-center">
-                <h1 class="text-2xl font-bold">Todo App</h1>
-                <div></div>
-                <!-- Right side empty -->
-            </div>
-        </nav>
+    <body>
+        <h1>Todo App</h1>
 
-        <main class="px-8">
-            <!-- One-line Form -->
-            <form
-                onsubmit="handleSubmit"
-                id="todoForm"
-                class="bg-white p-4 rounded-lg shadow mb-8 flex flex-col md:flex-row gap-4 items-center max-w-5xl mx-auto"
-            >
-                <input
-                    name="title"
-                    type="text"
-                    placeholder="Title"
-                    class="flex-1 px-4 py-2 border rounded focus:outline-none"
-                />
-                <input
-                    name="description"
-                    type="text"
-                    placeholder="Description"
-                    class="flex-1 px-4 py-2 border rounded focus:outline-none"
-                />
+        <!-- Add Todo Form -->
+        <form id="addTodoForm">
+            <label>
+                Title:
+                <input type="text" name="title" required />
+            </label>
+            <label>
+                Description:
+                <input type="text" name="description" required />
+            </label>
+            <button type="submit">Add Todo</button>
+        </form>
 
-                <label class="flex items-center space-x-2">
-                    <input
-                        name="completed"
-                        type="checkbox"
-                        class="form-checkbox h-5 w-5 text-blue-600"
-                    />
-                    <span>Completed</span>
-                </label>
-
-                <button
-                    type="submit"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 whitespace-nowrap"
+        <!-- Todo List Table -->
+        {% if todos %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for todo in todos %}
+                <tr
+                    data-id="{{ todo['_id'] }}"
+                    data-title="{{ todo['title'] }}"
+                    data-description="{{ todo['description'] }}"
                 >
-                    Add
-                </button>
-            </form>
-
-            <!-- Todo List -->
-            <div class="max-w-5xl mx-auto space-y-4">
-                {% for i in range(1 , (todos | length) + 1) %}
-
-                <!-- Example Todo Item - Not Completed -->
-                <div
-                    class="bg-white p-4 rounded shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-4"
-                >
-                    <div class="flex-1">
-                        <p class="text-sm text-gray-500">#{{i}}</p>
-                        <p class="font-semibold">{{todos[i-1].title}}</p>
-                        <p class="text-gray-600 text-sm">
-                            {{todos[i-1].description}}
-                        </p>
-                    </div>
-                    <div class="text-gray-400 text-xl">
-                        <span
-                            class="inline-block w-6 h-6 border border-gray-400 rounded"
-                        ></span>
-                        <!-- Empty box -->
-                    </div>
-                    <div class="space-x-2">
-                        <button
-                            class="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500"
-                        >
-                            Edit
-                        </button>
-                        <button
-                            class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                        >
-                            Delete
-                        </button>
-                    </div>
-                </div>
+                    <td data-label="Title">{{ todo['title'] }}</td>
+                    <td data-label="Description">{{ todo['description'] }}</td>
+                    <td data-label="Actions">
+                        <button class="action-btn edit-btn">Edit</button>
+                        <button class="action-btn delete-btn">Delete</button>
+                    </td>
+                </tr>
                 {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align: center">No todos</div>
+        {% endif %}
+        <!-- Edit Modal -->
+        <div id="editModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3>Edit Todo</h3>
+                <form id="editTodoForm">
+                    <input type="hidden" name="id" />
+                    <label>
+                        Title:
+                        <input type="text" name="title" required />
+                    </label>
+                    <label>
+                        Description:
+                        <input type="text" name="description" required />
+                    </label>
+                    <br />
+                    <button type="submit">Update</button>
+                </form>
             </div>
-        </main>
+        </div>
+
+        <script>
+            // Add Todo
+            document
+                .getElementById("addTodoForm")
+                .addEventListener("submit", async (e) => {
+                    e.preventDefault();
+                    const form = e.target;
+                    const data = {
+                        title: form.title.value,
+                        description: form.description.value,
+                    };
+                    const res = await fetch("/", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(data),
+                    });
+                    if (res.ok) {
+                        window.location.reload();
+                    } else {
+                        alert("Failed to create todo");
+                    }
+                });
+
+            // Delete Todo
+            document.querySelectorAll(".delete-btn").forEach((button) => {
+                button.addEventListener("click", async (e) => {
+                    const row = e.target.closest("tr");
+                    const id = row.dataset.id;
+                    const res = await fetch(`/${id}`, { method: "DELETE" });
+                    if (res.ok) {
+                        row.remove();
+                    } else {
+                        alert("Failed to delete todo");
+                    }
+                });
+            });
+
+            // Modal Logic
+            const modal = document.getElementById("editModal");
+            const closeBtn = modal.querySelector(".close");
+            const editForm = document.getElementById("editTodoForm");
+
+            closeBtn.onclick = () => (modal.style.display = "none");
+            window.onclick = (e) => {
+                if (e.target === modal) modal.style.display = "none";
+            };
+
+            // Open Modal with Pre-filled Data
+            document.querySelectorAll(".edit-btn").forEach((button) => {
+                button.addEventListener("click", (e) => {
+                    const row = e.target.closest("tr");
+                    const id = row.dataset.id;
+                    const title = row.dataset.title;
+                    const description = row.dataset.description;
+
+                    editForm.id.value = id;
+                    editForm.title.value = title;
+                    editForm.description.value = description;
+
+                    modal.style.display = "block";
+                });
+            });
+
+            // Submit Updated Todo
+            editForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const id = form.id.value;
+
+                const data = {
+                    title: form.title.value,
+                    description: form.description.value,
+                };
+
+                const res = await fetch(`/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                });
+
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert("Failed to update todo");
+                }
+            });
+        </script>
     </body>
 </html>

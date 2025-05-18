@@ -34,8 +34,7 @@ async def updateTodo(id : str , todo:UpdateTodo):
     print(f"EXISTTODO : {existTodo}")
     newTodo = dict({
         "title": f"{todo.title if todo.title != None else existTodo["title"]}",
-        "description": f"{todo.description if todo.description != None else existTodo["description"]}",
-        "completed": f"{todo.completed if todo.completed != None else existTodo["completed"]}"
+        "description": f"{todo.description if todo.description != None else existTodo["description"]}"
     })
 
     TodoCollection.update_one({"_id" : ObjectId(id)} , {"$set" : newTodo})
